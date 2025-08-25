@@ -1,0 +1,142 @@
+.sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 99;
+  background-color: #171717;
+  color: #b4b4b4;
+  height: 100%;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transform: translateX(-100%);
+  will-change: transform;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .gtp-logo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px;
+    padding: 10px;
+    background-color: transparent;
+    cursor: pointer;
+
+    .logo {
+      height: 22px;
+      width: 22px;
+      background-color: #fff;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    svg {
+      width: 26px;
+      height: 26px;
+    }
+  }
+
+  .create-new-chat {
+    display: flex;
+    align-items: center;
+    margin: 0 10px;
+    padding: 10px;
+
+    i {
+      font-size: 14px;
+      margin-right: 14px;
+    }
+
+    p {
+      font-size: 14px;
+      font-weight: 400;
+    }
+  }
+
+  .history {
+    margin: 10px;
+    padding: 10px;
+    height: 100%;
+  }
+
+  .profile {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    margin: 10px;
+    font-size: 14px;
+    text-align: center;
+    border-top: solid 0.25px rgba(255, 255, 255, 0.5);
+    user-select: none;
+    cursor: pointer;
+
+    .logout {
+      position: absolute;
+      top: -60px;
+      left: 0;
+      width: 100%;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #d3d1d1;
+      transition: color 0.2s;
+      background-color: #353535;
+      padding: 12px 16px;
+      border-radius: 8px;
+      transition: all 0.2s;
+
+      &:hover {
+        color: #fff;
+        background-color: #464646;
+      }
+
+      svg {
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    .show-logout {
+      display: flex;
+    }
+
+    span {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 26px;
+      width: 26px;
+      background-color: #fff;
+      color: #000;
+      font-weight: 600;
+      border-radius: 50%;
+      font-size: 14px;
+    }
+  }
+}
+
+.show-side-bar {
+  transform: translateX(0);
+}
+
+.minimize-side-bar {
+  width: 80px;
+}
+
+@media (min-width: 1024px) {
+  .sidebar {
+    position: relative;
+    transform: translateX(0);
+
+    .gtp-logo {
+      svg {
+        display: none;
+      }
+    }
+  }
+}
