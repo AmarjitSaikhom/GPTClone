@@ -1,81 +1,46 @@
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import SideBar from "../../components/sidebar/SideBar";
 import "./home.scss";
 import Chat from "../../components/chat/Chat";
+import { sendMessage } from "../../store/chatSlice";
 
 const HomePage = () => {
+  const dispatch = useDispatch();
   const [showSideBar, setShowSideBar] = useState(false);
-  const [chats, setChats] = useState([]);
-  const [selectedChat, setSelectedChat] = useState(null);
-  const [chatMessages, setChatMessages] = useState({});
   const [promptMessage, setPromptMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  
+  // Get state from Redux
+  const { messages, conversations: chats, currentConversation: selectedChat, status } = useSelector(state => state.chat);
+  const isLoading = status === 'loading';
 
   const handleShowSideBar = () => {
     setShowSideBar(true);
   }
 
   const handleCreateNewChat = (newChat) => {
-    setChats(prevChats => [newChat, ...prevChats]);
-    setSelectedChat(newChat.id);
-    setChatMessages(prev => ({
-      ...prev,
-      [newChat.id]: []
-    }));
+    dispatch({ type: 'chat/createNewChat', payload: newChat });
+    dispatch({ type: 'chat/setCurrentConversation', payload: newChat.id });
   };
 
   const handleDeleteChat = (chatId) => {
-    setChats(prevChats => prevChats.filter(chat => chat.id !== chatId));
-    setChatMessages(prev => {
-      const newMessages = { ...prev };
-      delete newMessages[chatId];
-      return newMessages;
-    });
+    dispatch({ type: 'chat/deleteChat', payload: chatId });
     if (selectedChat === chatId) {
-      setSelectedChat(null);
+      dispatch({ type: 'chat/setCurrentConversation', payload: null });
     }
-  };
-
-  const simulateGPTResponse = (userMessage) => {
-    const responses = [
-      "I understand. Can you tell me more about that?",
-      "That's interesting! How does that make you feel?",
-      "Let me help you with that. What specific information are you looking for?",
-      "I appreciate your question. Here's what I think...",
-      "That's a great point! Have you considered..."
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
   };
 
   const handleMessageSend = () => {
     if (!promptMessage.trim() || !selectedChat) return;
 
-    const newUserMessage = {
-      id: Date.now(),
-      messageContent: promptMessage,
+    const messageData = {
+      conversationId: selectedChat,
+      content: promptMessage,
       sender: 'user'
     };
 
-    setChatMessages(prev => ({
-      ...prev,
-      [selectedChat]: [...(prev[selectedChat] || []), newUserMessage]
-    }));
+    dispatch(sendMessage(messageData));
     setPromptMessage('');
-    setIsLoading(true);
-
-    // Simulate GPT response with a slight delay
-    setTimeout(() => {
-      const gptResponse = {
-        id: Date.now(),
-        messageContent: simulateGPTResponse(promptMessage),
-        sender: 'gpt'
-      };
-      setChatMessages(prev => ({
-        ...prev,
-        [selectedChat]: [...(prev[selectedChat] || []), gptResponse]
-      }));
-      setIsLoading(false);
-    }, 1000);
   };
 
   const handleKeyDown = (e) => {
@@ -94,18 +59,18 @@ const HomePage = () => {
         setShowSideBar={setShowSideBar}
         chats={chats}
         selectedChat={selectedChat}
-        setSelectedChat={setSelectedChat}
+        // setSelectedChat={setSelectedChat}
         onCreateNewChat={handleCreateNewChat}
         onDeleteChat={handleDeleteChat}
       />
       <div className="home-chat-contain">
         <nav>
           <svg onClick={handleShowSideBar} viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg" data-rtl-flip="" className="icon-lg text-token-text-secondary mx-2"><path d="M11.6663 12.6686L11.801 12.6823C12.1038 12.7445 12.3313 13.0125 12.3313 13.3337C12.3311 13.6547 12.1038 13.9229 11.801 13.985L11.6663 13.9987H3.33325C2.96609 13.9987 2.66839 13.7008 2.66821 13.3337C2.66821 12.9664 2.96598 12.6686 3.33325 12.6686H11.6663ZM16.6663 6.00163L16.801 6.0153C17.1038 6.07747 17.3313 6.34546 17.3313 6.66667C17.3313 6.98788 17.1038 7.25586 16.801 7.31803L16.6663 7.33171H3.33325C2.96598 7.33171 2.66821 7.03394 2.66821 6.66667C2.66821 6.2994 2.96598 6.00163 3.33325 6.00163H16.6663Z"></path></svg>
-          <h3>{chats.find(chat => chat.id === selectedChat)?.title || 'GPTClone'}</h3>
+          <h3>GPTClone</h3>
         </nav>
 
         <Chat
-          messages={selectedChat ? chatMessages[selectedChat] || [] : []}
+          messages={selectedChat ? messages.filter(msg => msg.conversationId === selectedChat) : []}
           isLoading={isLoading}
         />
 

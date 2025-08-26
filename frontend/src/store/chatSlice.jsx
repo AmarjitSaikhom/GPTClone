@@ -1,70 +1,84 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { createSlice, nanoid } from '@reduxjs/toolkit';
 
-// Async thunk for sending a message
-export const sendMessage = createAsyncThunk(
-    'chat/sendMessage',
-    async (messageData) => {
-        const response = await axios.post('/api/chat/send', messageData);
-        return response.data;
-    }
-);
-
-// Async thunk for fetching chat history
-export const fetchChatHistory = createAsyncThunk(
-    'chat/fetchHistory',
-    async () => {
-        const response = await axios.get('/api/chat/history');
-        return response.data;
-    }
-);
+// helpers
+const createEmptyChat = (title) => ({ id: nanoid(), title: title || 'New Chat', messages: [] });
 
 const chatSlice = createSlice({
     name: 'chat',
     initialState: {
-        messages: [],
-        conversations: [],
-        currentConversation: null,
-        status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
-        error: null,
+        chats: [],
+        activeChatId: null,
+        isSending: false,
+        input: ''
     },
     reducers: {
-        setCurrentConversation: (state, action) => {
-            state.currentConversation = action.payload;
+        ensureInitialChat(state) {
+            if (state.chats.length === 0) {
+                const chat = createEmptyChat();
+                state.chats.unshift(chat);
+                state.activeChatId = chat.id;
+            }
         },
-        clearChat: (state) => {
-            state.messages = [];
-            state.currentConversation = null;
+        startNewChat: {
+            reducer(state, action) {
+                const { _id, title } = action.payload;
+                state.chats.unshift({ _id, title: title || 'New Chat', messages: [] });
+                state.activeChatId = _id;
+            }
         },
-    },
-    extraReducers: (builder) => {
-        builder
-            // Handle sendMessage
-            .addCase(sendMessage.pending, (state) => {
-                state.status = 'loading';
-            })
-            .addCase(sendMessage.fulfilled, (state, action) => {
-                state.status = 'succeeded';
-                state.messages.push(action.payload);
-            })
-            .addCase(sendMessage.rejected, (state, action) => {
-                state.status = 'failed';
-                state.error = action.error.message;
-            })
-            // Handle fetchChatHistory
-            .addCase(fetchChatHistory.pending, (state) => {
-                state.status = 'loading';
-            })
-            .addCase(fetchChatHistory.fulfilled, (state, action) => {
-                state.status = 'succeeded';
-                state.conversations = action.payload;
-            })
-            .addCase(fetchChatHistory.rejected, (state, action) => {
-                state.status = 'failed';
-                state.error = action.error.message;
-            });
-    },
+        selectChat(state, action) {
+            state.activeChatId = action.payload;
+        },
+        setInput(state, action) {
+            state.input = action.payload;
+        },
+        sendingStarted(state) {
+            state.isSending = true;
+        },
+        sendingFinished(state) {
+            state.isSending = false;
+        },
+        setChats(state, action) {
+            state.chats = action.payload;
+        },
+        addUserMessage: {
+            reducer(state, action) {
+                const { chatId, message } = action.payload;
+                const chat = state.chats.find(c => c.id === chatId);
+                if (!chat) return;
+                if (chat.messages.length === 0) {
+                    chat.title = message.content.slice(0, 40) + (message.content.length > 40 ? '…' : '');
+                }
+                chat.messages.push(message);
+            },
+            prepare(chatId, content) {
+                return { payload: { chatId, message: { id: nanoid(), role: 'user', content, ts: Date.now() } } };
+            }
+        },
+        addAIMessage: {
+            reducer(state, action) {
+                const { chatId, message } = action.payload;
+                const chat = state.chats.find(c => c.id === chatId);
+                if (!chat) return;
+                chat.messages.push(message);
+            },
+            prepare(chatId, content, error = false) {
+                return { payload: { chatId, message: { id: nanoid(), role: 'ai', content, ts: Date.now(), ...(error ? { error: true } : {}) } } };
+            }
+        }
+    }
 });
 
-export const { setCurrentConversation, clearChat } = chatSlice.actions;
+export const {
+    ensureInitialChat,
+    startNewChat,
+    selectChat,
+    setInput,
+    sendingStarted,
+    sendingFinished,
+    addUserMessage,
+    addAIMessage,
+    setChats
+} = chatSlice.actions;
+
 export default chatSlice.reducer;

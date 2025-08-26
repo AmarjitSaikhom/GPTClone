@@ -7,7 +7,13 @@ const messageModel = require("../models/message.model");
 const { createMemory, queryMemory } = require("../service/vector.service");
 
 function initSocketServer(httpServer) {
-  const io = new Server(httpServer, {});
+  const io = new Server(httpServer, {
+    cors: {
+      origin: "http://localhost:5173",
+      allowedHeaders: ["Content-Type", "Authorization"],
+      credentials: true,
+    },
+  });
 
   io.use(async (socket, next) => {
     const cookies = cookie.parse(socket.handshake.headers?.cookie || "");
@@ -59,17 +65,17 @@ function initSocketServer(httpServer) {
       //   },
       // });
 
-      // await createMemory({
-      //   vectors,
-      //   messageId: message._id,
-      //   metadata: {
-      //     chat: messagePayload.chat,
-      //     user: socket.user._id,
-      //     text: messagePayload.content,
-      //   },
-      // });
+      await createMemory({
+        vectors,
+        messageId: message._id,
+        metadata: {
+          chat: messagePayload.chat,
+          user: socket.user._id,
+          text: messagePayload.content,
+        },
+      });
 
-      const [memory] = await Promise.all([
+      const [memory, chatHistory] = await Promise.all([
         queryMemory({
           queryVector: vectors,
           limit: 3,
@@ -78,26 +84,25 @@ function initSocketServer(httpServer) {
           },
         }),
 
-        createMemory({
-          vectors,
-          messageId: message._id,
-          metadata: {
-            chat: messagePayload.chat,
-            user: socket.user._id,
-            text: messagePayload.content,
-          },
-        }),
-      ]);
-
-      const chatHistory = (
-        await messageModel
+        messageModel
           .find({
             chat: messagePayload.chat,
           })
           .sort({ createdAt: -1 })
-          .limit(10)
+          .limit(20)
           .lean()
-      ).reverse();
+          .then((message) => message.reverse()),
+      ]);
+
+      // const chatHistory = (
+      //   await messageModel
+      //     .find({
+      //       chat: messagePayload.chat,
+      //     })
+      //     .sort({ createdAt: -1 })
+      //     .limit(10)
+      //     .lean()
+      // ).reverse();
 
       const stm = chatHistory.map((item) => {
         return {
@@ -127,14 +132,25 @@ function initSocketServer(httpServer) {
         chat: messagePayload.chat,
       });
 
-      const responseMessage = await messageModel.create({
-        chat: messagePayload.chat,
-        user: socket.user._id,
-        content: response,
-        role: "model",
-      });
+      // const responseMessage = await messageModel.create({
+      //   chat: messagePayload.chat,
+      //   user: socket.user._id,
+      //   content: response,
+      //   role: "model",
+      // });
 
-      const responseVectors = await aiService.generateVector(response);
+      // const responseVectors = await aiService.generateVector(response);
+
+      const [responseMessage, responseVectors] = await Promise.all([
+        messageModel.create({
+          chat: messagePayload.chat,
+          user: socket.user._id,
+          content: response,
+          role: "model",
+        }),
+
+        aiService.generateVector(response),
+      ]);
 
       await createMemory({
         vectors: responseVectors,
