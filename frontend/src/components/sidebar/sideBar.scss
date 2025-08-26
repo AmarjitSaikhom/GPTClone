@@ -42,6 +42,7 @@
     align-items: center;
     margin: 0 10px;
     padding: 10px;
+    cursor: pointer;
 
     i {
       font-size: 14px;
@@ -54,10 +55,76 @@
     }
   }
 
+  .new-chat-input {
+    margin: 0 10px;
+    padding: 0 10px;
+
+    input {
+      width: 100%;
+      padding: 8px;
+      background-color: #353535;
+      border: 1px solid #464646;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+
+      &:focus {
+        border-color: #666;
+      }
+
+      &::placeholder {
+        color: #888;
+      }
+    }
+  }
+
   .history {
-    margin: 10px;
-    padding: 10px;
     height: 100%;
+
+    h5 {
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: #ffffffa8;
+      line-height: 1.8;
+      padding: 10px;
+      margin: 10px;
+    }
+
+    li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      list-style-type: none;
+      cursor: pointer;
+      padding: 10px;
+      margin: 10px;
+      position: relative;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: #353535;
+      }
+
+      &.selected {
+        background-color: #3535355b;
+        border: 1px solid #46464658;
+      }
+
+      p {
+        font-size: 0.9rem;
+        font-weight: 400;
+        color: #fff;
+      }
+
+      i {
+        color: #ffffffce;
+        &:hover {
+          color: #fff;
+        }
+      }
+    }
   }
 
   .profile {
