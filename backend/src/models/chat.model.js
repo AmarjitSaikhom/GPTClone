@@ -10,6 +10,7 @@ const chatSchema = new mongoose.Schema(
     title: {
       type: String,
       required: true,
+      default: "New Chat",
     },
     lastActivity: {
       type: Date,

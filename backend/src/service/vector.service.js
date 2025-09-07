@@ -4,10 +4,10 @@ const { Pinecone } = require("@pinecone-database/pinecone");
 // Initialize a Pinecone client with your API key
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 
-const cohortChatGptIndex = pc.index("cohort-chat-gpt");
+const cohortGptIndex = pc.index("cohort-gpt");
 
 async function createMemory({ vectors, metadata, messageId }) {
-  await cohortChatGptIndex.upsert([
+  await cohortGptIndex.upsert([
     {
       id: messageId,
       values: vectors,
@@ -17,7 +17,7 @@ async function createMemory({ vectors, metadata, messageId }) {
 }
 
 async function queryMemory({ queryVector, limit = 5, metadata }) {
-  const data = await cohortChatGptIndex.query({
+  const data = await cohortGptIndex.query({
     vector: queryVector,
     topK: limit,
     filter: metadata ? metadata : undefined,

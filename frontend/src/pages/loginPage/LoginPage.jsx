@@ -1,34 +1,22 @@
-import "./login.scss"
 import { Link, useNavigate } from "react-router-dom"
-import { useForm } from "react-hook-form"
-import { useState } from "react"
-import axios from "axios";
+import "./login.scss"
+import { useForm } from "react-hook-form";
+import { login_user } from "../../store/actions/userAction";
+import { useDispatch } from "react-redux"
+import { useState } from "react";
 
 const LoginPage = () => {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm()
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState("")
-  const navigate = useNavigate()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { register, handleSubmit } = useForm();
 
-  const SubmitHandler = (data) => {
-    setSubmitting(true);
+  const dispatch = useDispatch()
+  const navigate = useNavigate();
 
-    axios.post("http://localhost:3000/api/auth/login", {
-      email: data.email,
-      password: data.password
-    },
 
-      { withCredentials: true }
-
-    ).then((res) => {
-      reset()
-      navigate("/")
-
-    }).catch((err) => {
-      setError(err.response?.data?.message || "Login failed. Please try again.");
-      setSubmitting(false)
-    })
+  const handleLoginUser = (userInfo) => {
+    dispatch(login_user(userInfo, navigate, setIsSubmitting))
   }
+
 
   return (
     <section className="login">
@@ -38,53 +26,26 @@ const LoginPage = () => {
           <p>Welcome back to the world of AI</p>
         </header>
 
-        <form onSubmit={handleSubmit(SubmitHandler)}>
+        <form onSubmit={handleSubmit(handleLoginUser)}>
           <div className="field-group">
             <label htmlFor="email">Email</label>
-            <input 
-              id="email" 
-              {...register("email", { 
-                required: "Email is required",
-                // pattern: {
-                //   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                //   message: "Invalid email address"
-                // }
-              })} 
-              type="email" 
-              name="email" 
-              autoComplete="email" 
-              placeholder="Email address" 
-            />
-            {errors.email && <span className="error">{errors.email.message}</span>}
+            <input {...register("email", { required: true })} id="email" type="email" name="email" autoComplete="email" placeholder="Email address" />
           </div>
 
           <div className="field-group">
             <label htmlFor="password">Password</label>
-            <input 
-              id="password" 
-              {...register("password", { 
-                required: "Password is required",
-                minLength: { value: 4, message: "Password must be at least 6 characters" }
-              })} 
-              type="password" 
-              name="password" 
-              autoComplete="current-password" 
-              placeholder="Password" 
-            />
-            {errors.password && <span className="error">{errors.password.message}</span>}
+            <input {...register("password", { required: true })} id="password" type="password" name="password" autoComplete="new-password" placeholder="password" />
           </div>
 
-          {error && <div className="error-message">{error}</div>}
-          
-          <button className="primary-btn" disabled={submitting}>
-            {submitting ? 'Logging...' : 'Login'}
+          <button className="primary-btn">
+            {isSubmitting ? 'Creating...' : 'Create Account'}
           </button>
         </form>
 
-        <p className="auth-alt">Don't have an account? <Link to="/register">Register</Link></p>
+        <p className="auth-alt">Didn't have an account? <Link to="/register">Register</Link></p>
       </div>
     </section>
   )
 }
 
-export default LoginPage;
+export default LoginPage

@@ -24,7 +24,7 @@ const Chat = ({ messages, isLoading }) => {
                         {messages.map((message) => (
                             <div key={message.id} className={message.sender === 'user' ? 'userDiv' : 'gptDiv'}>
                                 <p className={message.sender === 'user' ? 'userMessage' : 'gptMessage'}>
-                                    {message.messageContent}
+                                    {message.content}
                                 </p>
                             </div>
                         ))}
