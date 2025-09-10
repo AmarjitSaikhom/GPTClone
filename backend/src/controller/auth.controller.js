@@ -32,14 +32,14 @@ async function registerUser(req, res) {
     });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "4d",
+      expiresIn: "1d",
     });
 
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 1 * 60 * 60 * 1000,
     });
 
     res.status(201).json({
@@ -48,8 +48,8 @@ async function registerUser(req, res) {
         _id: user._id,
         email: user.email,
         fullName: {
-          firstName: user.firstName,
-          lastName: user.lastName,
+          firstName: user.fullName.firstName,
+          lastName: user.fullName.lastName,
         },
       },
     });
@@ -82,20 +82,18 @@ async function loginUser(req, res) {
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      return res.status(400).json({
-        message: "Invalid email or password",
-      });
+      return res.status(400).json({ message: "Invalid email or password" });
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "4d",
+      expiresIn: "1d",
     });
 
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 1 * 60 * 60 * 1000,
     });
 
     return res.status(200).json({
@@ -104,8 +102,8 @@ async function loginUser(req, res) {
         _id: user._id,
         email: user.email,
         fullName: {
-          firstName: user.firstName,
-          lastName: user.lastName,
+          firstName: user.fullName.firstName,
+          lastName: user.fullName.lastName,
         },
       },
     });
@@ -116,7 +114,20 @@ async function loginUser(req, res) {
   }
 }
 
+async function logoutUser(req, res) {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+  });
+
+  res.status(200).json({
+    message: "User logout successfully",
+  });
+}
+
 module.exports = {
   registerUser,
   loginUser,
+  logoutUser,
 };

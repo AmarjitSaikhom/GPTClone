@@ -4,9 +4,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { createChat, deleteChat, selectChat } from "../../store/reducers/chatSlice";
 import { create_new_chat } from "../../store/actions/chatAction";
 import axios from "../../api/axiosconfic";
+import { logout_user } from "../../store/actions/userAction";
+import { useNavigate } from "react-router-dom"
 
 const SideBar = ({ showSideBar, setShowSideBar }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate()
   const { chats, selectedChat } = useSelector((state) => state.chat);
   const user = useSelector((state) => state.auth.user);
 
@@ -37,6 +40,10 @@ const SideBar = ({ showSideBar, setShowSideBar }) => {
       })
 
   }, [user])
+
+  const handleLogoutUser = () => {
+    dispatch(logout_user(navigate))
+  }
 
   return (
     <section className={`sidebar ${showSideBar ? "show-side-bar" : null}`}>
@@ -93,7 +100,7 @@ const SideBar = ({ showSideBar, setShowSideBar }) => {
       </ul>
 
       <div onClick={handleToggleLogout} className="profile">
-        <div className={`logout ${showLogout ? "show-logout" : null}`}>
+        <div onClick={handleLogoutUser} className={`logout ${showLogout ? "show-logout" : null}`}>
           Log out
         </div>
         <span>{user.fullName.firstName[0]}</span>

@@ -38,3 +38,12 @@ export const login_user =
       setIsSubmitting(false);
     }
   };
+
+export const logout_user = (navigate) => async () => {
+  try {
+    await axios.get("/api/auth/logout", { withCredentials: true });
+    navigate("/login");
+  } catch (error) {
+    console.log("logout failed", error);
+  }
+};

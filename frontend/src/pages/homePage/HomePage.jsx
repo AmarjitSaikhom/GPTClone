@@ -84,9 +84,9 @@ const HomePage = () => {
     socket.current.on("ai-response", handleAiResponse)
 
 
-    return () => {
-      socket.current.off("ai-response", handleAiResponse)
-    }
+    // return () => {
+    //   socket.current.off("ai-response", handleAiResponse)
+    // }
 
 
   }, [dispatch])
